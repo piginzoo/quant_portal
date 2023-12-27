@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>股票信息</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/data_render.js')}}"></script>
+    <script>
+        $(document).ready(function(){
+             $.ajax({
+                url: '/api?action=trade',
+                type: 'get',
+                success: function (data) {
+                    render_html(data.data,'#content');
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+            　　　　console.log(XMLHttpRequest.status);
+            　　　　console.log(XMLHttpRequest.readyState);
+            　　　　console.log(textStatus);
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="container-fluid container-panel">
+    <div id="content" class="table table-striped"></div>
+</div>
+</body>
+</html>
