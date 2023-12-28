@@ -16,6 +16,13 @@ FIGSIZE = (20, 25)
 
 
 def plot(df, df_baselines, params):
+    """
+    报错，所以加上matplotlib.use("Agg")
+    UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail.
+    fig = plt.figure(figsize=(15, 5))
+    *** Terminating app due to uncaught exception 'NSInternalInconsistencyException',
+    reason: 'NSWindow drag regions should only be invalidated on the Main Thread!'
+    """
     matplotlib.use('Agg')
 
     start_date = df.iloc[0].date
