@@ -8,6 +8,7 @@ conf/config.yml
 .DS_Store
 .idea/
 data/
+*.svg
 # C extensions
 *.so
 

@@ -8,6 +8,18 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def load_accounts(conf):
+    """
+    加载市值信息
+    """
+    path = os.path.join(conf.data_dir,"market_value.csv")
+    if not os.path.exists(path):
+        logger.warning("市值文件%s不存在",path)
+        return None
+    df = pd.read_csv(path,float_precision='round_trip',dtype={'date':str})#,encoding='gb2312')
+    df['date'] = pd.to_datetime(df.date)
+    return df
+
 def load_trades(conf):
     """
     文件约定为：<日期>.trade.csv

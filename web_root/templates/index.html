@@ -21,11 +21,26 @@
             　　　　console.log(textStatus);
                 }
             });
+            $.ajax({
+                url: '/api?action=account',
+                type: 'get',
+                success: function (data) {
+                    render_html(data.data,'#account');
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+            　　　　console.log(XMLHttpRequest.status);
+            　　　　console.log(XMLHttpRequest.readyState);
+            　　　　console.log(textStatus);
+                }
+            });
         });
     </script>
 </head>
 <body>
-<div class="container-fluid container-panel">
+<div class="container container-panel">
+    <div id="account"></div>
+    <h4>市值</h4>
+    <object style="width:100%" type="image/svg+xml" data="{{ url_for('static', filename='img/summary.svg')}}"></object>
     <div id="content" class="table table-striped"></div>
 </div>
 </body>
