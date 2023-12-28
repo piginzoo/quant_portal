@@ -1,20 +1,26 @@
 import logging
-import math
 import os
 
+import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
 
 from server import const
 from utils import data_loader
 from utils.metrics import drawback_duration
 from utils.utils import create_dir, init_logger, load_params
 
-FIGSIZE = (20, 25)
+
 logger = logging.getLogger(__name__)
 
+FIGSIZE = (20, 25)
 
-def plot(df,params):
+
+def plot(df, df_baselines, params):
+    matplotlib.use('Agg')
+
+    start_date = df.iloc[0].date
+    end_date = df.iloc[-1].date
+
     df.set_index('date', inplace=True)
     df_drawback = drawback_duration(df.total_value, 'daily')
 
@@ -43,16 +49,17 @@ def plot(df,params):
     df_draw = df.loc[s.start:s.end]
     ax.fill_between(df_draw.index, df_draw.total_value, df_draw.total_value.min(), alpha=0.3, color='brown',
                     label='最长回撤')
-
     ax.legend(loc='upper right')
+
     # 画基准
-    # handles = []
-    # for df_baseline in df_baselines:
-    #     ax2 = ax.twinx()
-    #     ax2._get_lines.prop_cycler = ax._get_lines.prop_cycler  # 让颜色可以自动循环起来
-    #     h, = ax2.plot(df_baseline.index, df_baseline.close, linewidth=0.5, label=f'基准{df_baseline.iloc[0].code}')
-    #     handles.append(h)
-    # ax2.legend(handles=handles, loc='upper left')
+    handles = []
+    for df_baseline in df_baselines:
+        ax2 = ax.twinx()
+        ax2._get_lines.prop_cycler = ax._get_lines.prop_cycler  # 让颜色可以自动循环起来
+        df_baseline = df_baseline[(df_baseline.date > start_date) & (df_baseline.date < end_date)]
+        h, = ax2.plot(df_baseline.date, df_baseline.close, linewidth=1, label=f'基准{df_baseline.iloc[0].code}')
+        handles.append(h)
+    ax2.legend(handles=handles, loc='upper left')
 
     # 保存图形
     fig.tight_layout()
@@ -68,5 +75,5 @@ if __name__ == '__main__':
     init_logger()
     conf = load_params(const.CONFIG)
     df = data_loader.load_accounts(conf)
-    plot(df,conf)
+    plot(df, conf)
     print("data/summary.svg")

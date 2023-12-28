@@ -1,15 +1,12 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-import json
 import logging
-
-from json import JSONDecodeError
 
 from flask import Blueprint, jsonify, request
 from quant_trader.utils import utils
 
 from server import const
-from utils import data_loader,stat
+from utils import data_loader, stat
 from utils.data_loader import load_trades, load_accounts
 from utils.utils import load_params, today, date2str
 
