@@ -1,16 +1,9 @@
-import os
-from collections import OrderedDict
 import logging
 
-import numpy as np
-import pandas as pd
-from pandas import DataFrame
-from tabulate import tabulate
-
 from utils import metrics
+from utils import utils
 from utils.metrics import annually_profit
-from utils import data_loader, utils
-from utils.utils import date2str, str2date
+from utils.utils import date2str, duration
 
 logger = logging.getLogger(__name__)
 """
@@ -54,73 +47,47 @@ logger = logging.getLogger(__name__)
 """
 
 
-def calculate_stat(df_baselines, broker, params, df_stock=None):
-    start_date = str2date(params.start_date)
-    end_date = str2date(params.end_date)
-
-    df_portfolio = broker.get_total_values()
+def stat_market_value(df_account, df_baselines):
+    df_account = df_account.set_index(df_account.date)
 
     # 计算各项指标
-    stat = OrderedDict()
+    stat = {}
+    start_date = df_account.date[0]
+    end_date = df_account.date[-1]
+    stat["投资起始"] = date2str(start_date)
+    stat["投资结束"] = date2str(end_date)
 
     if df_baselines is not None:
         for df_baseline in df_baselines:
-            start_value = df_baseline.iloc[0].close
-            end_value = df_baseline.iloc[-1].close
-            baseline_code = df_baseline.iloc[0].code
-            stat[f"基准{baseline_code}收益"] = end_value / start_value - 1
-            stat[f"基准{baseline_code}年化"] = annually_profit(start_value, end_value, start_date, end_date)
+            df_baseline = df_baseline[(df_baseline.date > stat["投资起始"]) & (df_baseline.date < stat["投资结束"])]
+            code = df_baseline.iloc[0].code
+            stat[f"基准{code}收益"] = float(df_baseline.iloc[0].close / df_baseline.iloc[-1].close - 1)
+            stat[f"基准{code}年化"] = float(annually_profit(df_baseline.iloc[0].close, df_baseline.iloc[-1].close,
+                                                      df_baseline.iloc[0].date, df_baseline.iloc[-1].date))
 
-    stat["投资起始"] = date2str(df_portfolio.index.min())
-    stat["投资结束"] = date2str(df_portfolio.index.max())
-    stat["投资天数"] = len(df_portfolio)
+    stat["投资天数"] = duration(start_date, end_date)
 
-    # 如果有无限投资额，就用累计投资额，否则，就用初始现金
-    start_value = broker.banker.debt if broker.banker else params.cash
-    end_value = broker.get_total_value() - broker.total_commission
-
-    stat["期初资金"] = start_value
-    stat["期末现金"] = broker.total_cash
-    stat["期末持仓"] = broker.get_total_position_value()
-    stat["期末总值"] = broker.get_total_value()
-    stat["组合赢利"] = end_value - start_value
-    stat["组合收益"] = end_value / start_value - 1
-    stat["组合年化"] = annually_profit(start_value, end_value, start_date, end_date)
+    # account_id,cash,total_value,total_position_value,date
+    stat["期初资金"] = float(df_account.iloc[0].total_value)
+    stat["期末现金"] = float(df_account.iloc[-1].cash)
+    stat["期末持仓"] = float(df_account.iloc[0].total_position_value)
+    stat["期末总值"] = float(df_account.iloc[0].total_value)
+    stat["组合赢利"] = float(df_account.iloc[-1].total_value - df_account.iloc[0].total_value)
+    stat["组合收益"] = float(stat["组合赢利"] / stat["期初资金"])
+    stat["组合年化"] = float(annually_profit(stat["期初资金"], stat["期末总值"], start_date, end_date))
 
     """
     接下来考察，仅投资用的现金的收益率，不考虑闲置资金了
     # 赢利 = 总卖出现金 + 持有市值 - 总投入现金 - 佣金
     """
-    stat["夏普比率"] = metrics.sharp_ratio(df_portfolio.total_value, params.period)
-    stat["索提诺比率"] = metrics.sortino_ratio(df_portfolio.total_value, params.period)
-    stat["卡玛比率"] = metrics.calmar_ratio(df_portfolio.total_value, params.period)
-    _drawback,draw_start,draw_end = metrics.max_drawback(df_portfolio.total_value, params.period)
-    stat["最大回撤"] = _drawback
-    stat["最大回撤开始"] = utils.date2str(draw_start)
-    stat["最大回撤结束"] = utils.date2str(draw_end)
-    stat["最大回撤天数"] = utils.duration(draw_start,draw_end)
-    stat["佣金"] = broker.total_commission
-
-    if df_stock is not None:
-        code = df_stock.iloc[0].code
-        start_value = df_stock.iloc[0].close
-        end_value = df_stock.iloc[-1].close
-        stat['最新价格'] = end_value
-        stat["股票收益"] = end_value / start_value - 1
-        stat["股票年化"] = annually_profit(start_value, end_value, start_date, end_date)
-        stat["股票代码"] = code
-        stat["成本"] = -1 if broker.positions.get(code, None) is None else broker.positions[code].cost
-        stat["持仓"] = -1 if broker.positions.get(code, None) is None else broker.positions[code].position
-
-    if broker.banker is not None:
-        stat["借钱次数"] = broker.banker.debt_num
-        stat["借钱总额"] = broker.banker.debt
-        stat["借钱次数"] = broker.banker.debt_num
-
-    df_trade = broker.get_trade_history()
-    _stat_trade = stat_trade(df_trade)
-    stat.update(_stat_trade)
-
+    stat["夏普比率"] = float(metrics.sharp_ratio(df_account.total_value))
+    stat["索提诺比率"] = float(metrics.sortino_ratio(df_account.total_value))
+    stat["卡玛比率"] = float(metrics.calmar_ratio(df_account.total_value))
+    _drawback, draw_start, draw_end = metrics.max_drawback(df_account.total_value)
+    stat["最大回撤"] = float(_drawback)
+    stat["最大回撤开始"] = float(utils.date2str(draw_start))
+    stat["最大回撤结束"] = float(utils.date2str(draw_end))
+    stat["最大回撤天数"] = float(utils.duration(draw_start, draw_end))
     return stat
 
 
@@ -164,112 +131,21 @@ def stat_trade(df_trade, start=None, end=None):
     stat = {}
     stat["交易次数"] = len(df_trade)
     stat["盈利次数"] = len(df_win)
-    stat["连续盈利最大次数"] = positive_occur_max
+    stat["连续盈利最大次数"] = int(positive_occur_max)
     stat["亏损次数"] = len(df_loss)
-    stat["连续亏损最大次数"] = negtive_occur_max
-    stat["平均收益"] = win_avg_percent
-    stat["平均正收益"] = win_avg_percent
-    stat["平均负收益"] = loss_avg_percent
+    stat["连续亏损最大次数"] = int(negtive_occur_max)
+    stat["平均收益"] = float(win_avg_percent)
+    stat["平均正收益"] = float(win_avg_percent)
+    stat["平均负收益"] = float(loss_avg_percent)
     stat["胜率"] = round(len(df_win) / (len(df_win) + len(df_loss)), 4) if len(df_win) + len(df_loss) > 0 else 0
     stat["赢亏比"] = win_avg_amount / abs(loss_avg_amount) if loss_avg_amount else 0
-    stat["期望"] = stat["胜率"] * stat["平均正收益"] + (1 - stat["胜率"]) * stat["平均负收益"]
-    stat["最大收益"] = df_win.pnl.max()
-    stat["最大收益/平均正收益"] = df_win.pnl.max() / win_avg_percent
-    stat["最小收益"] = df_loss.pnl.min()
-    stat["最小收益/平均负收益"] = df_loss.pnl.min() / loss_avg_percent
-    stat["持仓均天"] = df_trade.days.mean()
-    stat["持仓最长"] = df_trade.days.max()
-    stat["持仓最短"] = df_trade.days.min()
+    stat["期望"] = float(stat["胜率"] * stat["平均正收益"] + (1 - stat["胜率"]) * stat["平均负收益"])
+    stat["最大收益"] = float(df_win.pnl.max())
+    stat["最大收益/平均正收益"] = float(df_win.pnl.max() / win_avg_percent)
+    stat["最小收益"] = float(df_loss.pnl.min())
+    stat["最小收益/平均负收益"] = float(df_loss.pnl.min() / loss_avg_percent)
+    stat["持仓均天"] = float(df_trade.days.mean())
+    stat["持仓最长"] = int(df_trade.days.max())
+    stat["持仓最短"] = int(df_trade.days.min())
 
     return stat
-
-
-def show(df_baselines, broker, params, df=None):
-    """
-    用来统计一只股票的统计结果
-    """
-
-    df_stat = DataFrame()
-    df_trade = broker.get_trade_history()
-
-    start_date = params.start_date
-    end_date = params.end_date
-
-    code = 'summary' if df is None else df.iloc[0].code
-
-    # 统计这只基金的收益情况
-    stat = calculate_stat(df_baselines, broker, params, df)
-
-    df_stat = df_stat.append(stat, ignore_index=True)
-
-    log_stat_and_summary(stat, f'股票{code}的统计信息')
-
-    stat_by_period(df_trade)
-
-    if len(df_stat) == 0:
-        return df_stat
-
-    stat_file_name = os.path.join(params.debug_dir, f"{code}_{start_date}_{end_date}_stat.csv")
-    trade_file_name = os.path.join(params.debug_dir, f"{code}_{start_date}_{end_date}_trade.csv")
-
-    # 把统计结果df_stat写入到csv文件
-    # logger.info("交易统计：")
-    # with pd.option_context('display.max_rows', 100, 'display.max_columns', 100):
-    #     print(tabulate(df, headers='keys', tablefmt='psql'))
-    df_stat.to_csv(stat_file_name)
-
-
-    # 打印交易记录
-    logger.info("交易记录：")
-    # 暂时先注释了，不打印到屏幕上了
-    # print(tabulate(df_order, headers='keys', tablefmt='psql'))
-    df_trade.to_csv(trade_file_name)
-
-    write_stat_and_summary_file(f'{code}.txt', params, stat, f'股票{code}的回测统计信息')
-
-    # 打印期末持仓情况
-    # logger.info("期末持仓：")
-    # df = DataFrame([p.to_dict() for code, p in broker.positions.items()])
-    # print(tabulate(df, headers='keys', tablefmt='psql'))
-
-
-    return df_stat
-
-
-def stat_and_trade_summary(df_stat, df_trade, params):
-    """
-    用来统计多只股票汇总到一起的统计信息,
-    这个是用于多进程把所有的独立的股票都跑一遍后的信息汇总，
-    他不适合ConstrainBackTester和PoolBackTester，因为这两者，是可以计算组合的夏普、年化等组合信息的
-    """
-
-    # 回测统计
-    summary = OrderedDict()
-    # summary["股票"] = len(df_stocks)
-    summary["开始"] = params.start_date
-    summary["结束"] = params.end_date
-    summary["期初"] = df_stat['期初资金'].sum()
-    summary["期末"] = df_stat['期末总值'].sum()
-    summary["佣金%"] = (df_stat['佣金'].sum() / df_stat['期初资金'].sum()) * 100
-    summary["赢利%"] = (df_stat['期末总值'].sum() / df_stat['期初资金'].sum() - 1) * 100
-    summary["持仓均天"] = df_stat['持仓均天'].mean()
-    summary["年化%"] = 100 * annually_profit(df_stat['期初资金'].sum(),
-                                             df_stat['期末总值'].sum(),
-                                             params.start_date,
-                                             params.end_date)
-
-    # 统计交易
-    _stat_trade = stat_trade(df_trade)
-    summary.update(_stat_trade)
-
-    log_stat_and_summary(summary, '所有交易的汇总信息')
-
-
-
-def log_stat_and_summary(_dict,title):
-    logger.debug(f"\n{'-' * 80}")
-    logger.info(title)
-    logger.info("-" * 80)
-    for k, v in _dict.items():
-        logger.info(f"\t{k}:\t{v}")
-    logger.info("-" * 80)

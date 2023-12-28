@@ -33,6 +33,32 @@
             　　　　console.log(textStatus);
                 }
             });
+            $.ajax({
+                url: '/api?action=trade_stat',
+                type: 'get',
+                success: function (data) {
+                    render_html(data.data,'#trade_stat');
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+            　　　　console.log(XMLHttpRequest.status);
+            　　　　console.log(XMLHttpRequest.readyState);
+            　　　　console.log(textStatus);
+                }
+            });
+            $.ajax({
+                url: '/api?action=market_value_stat',
+                type: 'get',
+                success: function (data) {
+                    console.log("---------------------");
+                    console.log(data);
+                    render_html(data.data,'#market_value_stat');
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+            　　　　console.log(XMLHttpRequest.status);
+            　　　　console.log(XMLHttpRequest.readyState);
+            　　　　console.log(textStatus);
+                }
+            });
         });
     </script>
 </head>
@@ -41,6 +67,8 @@
     <div id="account"></div>
     <h4>市值</h4>
     <object style="width:100%" type="image/svg+xml" data="{{ url_for('static', filename='img/summary.svg')}}"></object>
+    <div id="market_value_stat"></div>
+    <div id="trade_stat"></div>
     <div id="content" class="table table-striped"></div>
 </div>
 </body>

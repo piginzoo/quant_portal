@@ -28,10 +28,9 @@
 **/
 
 function render_html(_data,content_selector){
-        console.log(_data);
         // 如果有title属性，插入到html中，用H4
         if ('title' in _data){
-            console.log('小标题：',+ _data.title);
+//            console.log('小标题：',+ _data.title);
             $(content_selector).append($('<h4/>',{'style':'text-align:left'}).html(_data.title));
         }
 
@@ -63,7 +62,7 @@ function render_html(_data,content_selector){
 
 //动态创建字典类型数据展示
 function create_dict(data,selector){
-    console.log('显示dict数据：'+data);
+//    console.log('显示dict数据：'+data);
     var root = $('<ul/>')
     root.css("class","list-group");
     for (var k in data) {

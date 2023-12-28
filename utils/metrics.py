@@ -39,12 +39,12 @@ def _daily_pct(value, period):
     """把不同时期的市值，转变成按照日计算的收益率"""
     # 如果是15分钟，每天4x4=16个15分钟
     if period == '15min':
-        return value.pct_change(periods=16)
+        return value.pct_change(periods=16).dropna()
     # 如果是15分钟，每天4x12=48个5分钟
     if period == '5min':
-        return value.pct_change(periods=48)
+        return value.pct_change(periods=48).dropna()
     if period == 'daily':
-        return value.pct_change(periods=1)
+        return value.pct_change(periods=1).dropna()
     raise ValueError(f"未实现的周期{period}")
 
 
@@ -68,7 +68,7 @@ def sharp_ratio(value, period='daily'):
     return math.sqrt(250) * (pct.mean() - RISK_FREE_ANNUALLY_RETRUN / 250) / pct.std()
 
 
-def sortino_ratio(value, period):
+def sortino_ratio(value, period='daily'):
     """
     - https://xueqiu.com/4197676503/203091694
     - https://blog.csdn.net/The_Time_Runner/article/details/99569365
@@ -86,17 +86,19 @@ def sortino_ratio(value, period):
     return _sortino_ratio(pct)
 
 
-def calmar_ratio(value, period):
+def calmar_ratio(value, period='daily'):
     """
     https://www.zhihu.com/question/46517863
     卡玛比率 = 超额收益/最大回撤(风险)
     """
     # https://blog.csdn.net/The_Time_Runner/article/details/99569365
     pct = _daily_pct(value, period)
-    return _calmar_ratio(pct)
+    cr = _calmar_ratio(pct)
+    if np.isnan(cr): return -1
+    return cr
 
 
-def drawbacks(value, period):
+def drawbacks(value, period='daily'):
     pct = _daily_pct(value, period)
 
     # 之前使用 emperial.max_drawdown(pct)，但是没有最大回撤期，现在改成下面的实现了
@@ -113,7 +115,7 @@ def drawbacks(value, period):
     return drawdowns, cumulative_returns
 
 
-def drawback_duration(close, period, min_days=10):
+def drawback_duration(close, period='daily', min_days=10):
     """
     返回每段回撤的时间
     :param close:
@@ -139,7 +141,7 @@ def drawback_duration(close, period, min_days=10):
         drawback_duration.append([drawback_start,drawback_end,duration_days,s[drawback_end]])
     return pd.DataFrame(drawback_duration, columns=['start','end','days','drawback'])
 
-def max_drawback(value, period):
+def max_drawback(value, period='daily'):
     """
     value，是close或者市值
     最大回撤，https://www.yht7.com/news/30845
