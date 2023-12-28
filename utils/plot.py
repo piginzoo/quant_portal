@@ -34,7 +34,7 @@ def plot(df, df_baselines, params):
     fig = plt.figure(figsize=(15, 5))
     size = (1, 1)
     ax = plt.subplot2grid(size, (0, 0))
-    ax.set_title(f'组合收益')
+    ax.set_title(f'市值变化')
     ax.set_xlabel('日期')
     ax.set_ylabel('市值')
     # 画组合的总市值（仓位+现金）变化

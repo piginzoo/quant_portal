@@ -49,8 +49,6 @@
                 url: '/api?action=market_value_stat',
                 type: 'get',
                 success: function (data) {
-                    console.log("---------------------");
-                    console.log(data);
                     render_html(data.data,'#market_value_stat');
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
