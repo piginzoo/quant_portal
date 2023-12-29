@@ -27,6 +27,9 @@ def api():
         # /api?action=trade
         if action == 'trade':
             df = load_trades(_CONF)
+            if len(df)>0:
+                df['close_date'] = df.close_date.apply(lambda x:date2str(x))
+                df['open_date'] = df.open_date.apply(lambda x:date2str(x))
             return jsonify({
                 'code': 0,
                 'msg': 'ok',

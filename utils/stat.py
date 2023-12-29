@@ -1,5 +1,7 @@
 import logging
 
+import numpy as np
+
 from utils import metrics
 from utils import utils
 from utils.metrics import annually_profit
@@ -46,6 +48,14 @@ logger = logging.getLogger(__name__)
      借钱总额 : N/A
 """
 
+def _format_dict(_dict):
+    for k,v in _dict.items():
+        if type(v) == float:
+            _dict[k] = round(v,3)
+        if np.isnan(v):
+            _dict[k] = -9999
+    return _dict
+
 
 def stat_market_value(df_account, df_baselines):
     df_account = df_account.set_index(df_account.date)
@@ -91,10 +101,7 @@ def stat_market_value(df_account, df_baselines):
     stat["最大回撤结束"] = float(utils.date2str(draw_end))
     stat["最大回撤天数"] = float(utils.duration(draw_start, draw_end))
 
-    for k,v in stat.items():
-        if type(v) == float:
-            stat[k] = round(v,3)
-    return stat
+    return _format_dict(stat)
 
 
 def stat_trade(df_trade, start=None, end=None):
@@ -155,7 +162,4 @@ def stat_trade(df_trade, start=None, end=None):
     stat["持仓最短"] = int(df_trade.days.min())
 
     # float保留小数点3位
-    for k,v in stat.items():
-        if type(v) == float:
-            stat[k] = round(v,3)
-    return stat
+    return _format_dict(stat)
