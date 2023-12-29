@@ -59,11 +59,13 @@ def stat_market_value(df_account, df_baselines):
 
     if df_baselines is not None:
         for df_baseline in df_baselines:
-            df_baseline = df_baseline[(df_baseline.date > stat["投资起始"]) & (df_baseline.date < stat["投资结束"])]
+            df_baseline = df_baseline[(df_baseline.date >= stat["投资起始"]) & (df_baseline.date <= stat["投资结束"])]
             code = df_baseline.iloc[0].code
             stat[f"基准{code}收益"] = float(df_baseline.iloc[0].close / df_baseline.iloc[-1].close - 1)
-            stat[f"基准{code}年化"] = float(annually_profit(df_baseline.iloc[0].close, df_baseline.iloc[-1].close,
-                                                      df_baseline.iloc[0].date, df_baseline.iloc[-1].date))
+            stat[f"基准{code}年化"] = float(annually_profit(df_baseline.iloc[0].close,
+                                                            df_baseline.iloc[-1].close,
+                                                            df_baseline.iloc[0].date,
+                                                            df_baseline.iloc[-1].date))
 
     stat["投资天数"] = duration(start_date, end_date)
 
@@ -81,13 +83,17 @@ def stat_market_value(df_account, df_baselines):
     # 赢利 = 总卖出现金 + 持有市值 - 总投入现金 - 佣金
     """
     stat["夏普比率"] = float(metrics.sharp_ratio(df_account.total_value))
-    stat["索提诺比率"] = float(metrics.sortino_ratio(df_account.total_value))
+    # stat["索提诺比率"] = float(metrics.sortino_ratio(df_account.total_value))
     stat["卡玛比率"] = float(metrics.calmar_ratio(df_account.total_value))
     _drawback, draw_start, draw_end = metrics.max_drawback(df_account.total_value)
     stat["最大回撤"] = float(_drawback)
     stat["最大回撤开始"] = float(utils.date2str(draw_start))
     stat["最大回撤结束"] = float(utils.date2str(draw_end))
     stat["最大回撤天数"] = float(utils.duration(draw_start, draw_end))
+
+    for k,v in stat.items():
+        if type(v) == float:
+            stat[k] = round(v,3)
     return stat
 
 
@@ -148,4 +154,8 @@ def stat_trade(df_trade, start=None, end=None):
     stat["持仓最长"] = int(df_trade.days.max())
     stat["持仓最短"] = int(df_trade.days.min())
 
+    # float保留小数点3位
+    for k,v in stat.items():
+        if type(v) == float:
+            stat[k] = round(v,3)
     return stat

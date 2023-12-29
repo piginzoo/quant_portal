@@ -32,6 +32,7 @@
 # 服务器配置
 
 在ubuntu上，安装nginx和python。
+转发原因是1024以下端口不允许非root使用，那就转发呗。
 
 修改nginx的配置，加入：
 
@@ -60,3 +61,31 @@
 ```
 
 这样，就不用做转发了。
+
+# matplotlib中文乱码问题解决
+
+参考：
+- https://blog.csdn.net/takedachia/article/details/131017286
+- https://juejin.cn/post/7023987001275711496
+
+```
+git clone https://github.com/tracyone/program_font 
+cd program_font 
+./install.sh
+ll /usr/share/fonts/MyFonts
+
+python
+>>> import matplotlib
+>>> matplotlib.matplotlib_fname()
+'/home/ubuntu/.local/lib/python3.10/site-packages/matplotlib/mpl-data/matplotlibrc'
+
+cp /usr/share/fonts/MyFonts/simhei.ttf  /home/ubuntu/.local/lib/python3.10/site-packages/matplotlib/mpl-data/fonts/ttf/
+
+rm -rf ~/.cache/matplotlib/*
+
+vim  /home/ubuntu/.local/lib/python3.10/site-packages/matplotlib/mpl-data/matplotlibrc
+>>> font.family:  sans-serif
+>>> font.serif:      simhei, ......
+>>> font.sans-serif: simhei, ......
+```
+

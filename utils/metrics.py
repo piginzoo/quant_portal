@@ -31,7 +31,8 @@ def annually_profit(start_value, end_value, start_date, end_date):
     earn = end_value / start_value
     years = relativedelta(dt1=end_date, dt2=start_date).years
     months = relativedelta(dt1=end_date, dt2=start_date).months % 12
-    years = years + months / 12
+    days = relativedelta(dt1=end_date, dt2=start_date).days % 365
+    years = years + months / 12 + days/365
     return earn ** (1 / years) - 1
 
 
@@ -81,7 +82,6 @@ def sortino_ratio(value, period='daily'):
         在所有亏损的日子中，亏损的标准差，这个标准差越大，说明当出现亏损的时候，发生大幅度亏损的可能性越大。所以这个下行风险越小越好
 
     """
-
     pct = _daily_pct(value, period)
     return _sortino_ratio(pct)
 
