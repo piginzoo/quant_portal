@@ -115,7 +115,7 @@ def stat_trade(df_trade, start=None, end=None):
     - 连续正收益次数
     - 连续负收益次数
     """
-
+    if len(df_trade)==0: return {'交易情况':'无交易'}
     if start:
         df_trade = df_trade[(df_trade.open_date > start) & (df_trade.open_date < end)]
     df_win = df_trade[df_trade.profit > 0]

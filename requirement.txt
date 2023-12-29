@@ -1,4 +1,4 @@
-akshare==1.12.4
+akshare==1.10.27
 dask==2023.12.1
 Flask==3.0.0
 empyrical==0.5.5
