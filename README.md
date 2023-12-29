@@ -28,3 +28,35 @@
     - 收益率评价
         - 。。。那些统计指标
     - 历史交易记录：显示trade，日期倒序
+
+# 服务器配置
+
+在ubuntu上，安装nginx和python。
+
+修改nginx的配置，加入：
+
+```
+        upstream flask {
+                server 127.0.0.1:8080;
+        }
+
+        server {
+               listen 80;
+               server_name <你的域名>;
+               client_max_body_size 8M;
+               client_body_buffer_size 2M;
+               location / {
+                   proxy_pass_header Server;
+                   proxy_set_header Host $http_host;
+                   proxy_redirect off;
+                   proxy_set_header X-Real-IP $remote_addr;
+                   proxy_set_header X-Scheme $scheme;
+                   proxy_http_version 1.1;
+                   proxy_set_header Upgrade $http_upgrade;
+                   proxy_set_header Connection "Upgrade";
+                   proxy_pass http://flask;
+                }
+        }
+```
+
+这样，就不用做转发了。
