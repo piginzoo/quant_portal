@@ -71,7 +71,7 @@ def load_formated_raw_trades(conf):
     df_trade = load_raw_trades(conf)
     df_trade.sort_values(by='traded_time', inplace=True, ascending=False) # 最新的在最前面，方便查看
     df_trade['order_type'] = df_trade.order_type.apply(lambda x: '买' if x==23 else '卖')
-    df_trade['traded_time'] = df_trade.order_type.apply(lambda x: date2str(x))
+    df_trade['traded_time'] = df_trade.traded_time.apply(lambda x: date2str(x))
     return df_trade[["code","order_type","traded_time","traded_price","traded_volume","traded_amount"]]
 
 def load_trades(conf):
