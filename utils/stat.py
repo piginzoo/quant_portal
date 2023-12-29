@@ -1,6 +1,6 @@
 import logging
 
-import numpy as np
+import pandas as pd
 
 from utils import metrics
 from utils import utils
@@ -52,7 +52,7 @@ def _format_dict(_dict):
     for k,v in _dict.items():
         if type(v) == float:
             _dict[k] = round(v,3)
-        if np.isnan(v):
+        if pd.isnull(v):
             _dict[k] = -9999
     return _dict
 
