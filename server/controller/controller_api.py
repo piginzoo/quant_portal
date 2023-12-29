@@ -3,12 +3,11 @@
 import logging
 
 from flask import Blueprint, jsonify, request
-from quant_trader.utils import utils
 
 from server import const
 from utils import data_loader, stat
 from utils.data_loader import load_trades, load_accounts
-from utils.utils import load_params, today, date2str
+from utils.utils import load_params, today, date2str, dataframe_to_dict_list
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +34,7 @@ def api():
                 'data': {
                     'title': '交易记录',
                     'type': 'table',
-                    'data': utils.dataframe_to_dict_list(df)
+                    'data': dataframe_to_dict_list(df)
                 }
             }), 200
 
