@@ -36,7 +36,7 @@ def load_index(index_code):
     return df_stock_index
 
 
-def load_trades(conf):
+def load_raw_trades(conf):
     """
     文件约定为：<日期>.trade.csv
     列：
@@ -64,7 +64,18 @@ def load_trades(conf):
     # pd.set_option('max_colwidth', 100)
 
     df_trade['traded_time'] = pd.to_datetime(df_trade['traded_time'], unit='s')
-    df_trade.sort_values(by='traded_time', inplace=True)
+    df_trade.sort_values(by='traded_time', inplace=True,ascending=True)
+    return df_trade
+
+def load_formated_raw_trades(conf):
+    df_trade = load_raw_trades(conf)
+    df_trade.sort_values(by='traded_time', inplace=True, ascending=False) # 最新的在最前面，方便查看
+    df_trade['order_type'] = df_trade.order_type.apply(lambda x: '买' if x==23 else '卖')
+    df_trade['traded_time'] = df_trade.order_type.apply(lambda x: date2str(x))
+    return df_trade[["code","order_type","traded_time","traded_price","traded_volume","traded_amount"]]
+
+def load_trades(conf):
+    df_trade  = load_raw_trades(conf)
 
     # 把QMT的df_trade，变成我们交易系统的trade，我们的是要有一个买，加上一个卖，才是一个完整的交易
     # 实现方法是，从上向下扫描表，遇到一个未处理的买，就去后面找他的对应的卖，2个合成一个trade，并标示为已处理，

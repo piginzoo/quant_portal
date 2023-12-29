@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request
 
 from server import const
 from utils import data_loader, stat
-from utils.data_loader import load_trades, load_accounts
+from utils.data_loader import load_trades, load_accounts, load_formated_raw_trades
 from utils.utils import load_params, today, date2str, dataframe_to_dict_list
 
 logger = logging.getLogger(__name__)
@@ -33,6 +33,20 @@ def api():
                 'title': action,
                 'data': {
                     'title': '交易记录',
+                    'type': 'table',
+                    'data': dataframe_to_dict_list(df)
+                }
+            }), 200
+
+        # /api?action=raw_trade
+        if action == 'raw_trade':
+            df = load_formated_raw_trades(_CONF)
+            return jsonify({
+                'code': 0,
+                'msg': 'ok',
+                'title': action,
+                'data': {
+                    'title': '原始交易记录',
                     'type': 'table',
                     'data': dataframe_to_dict_list(df)
                 }

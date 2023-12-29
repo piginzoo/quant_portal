@@ -13,7 +13,19 @@
                 url: '/api?action=trade',
                 type: 'get',
                 success: function (data) {
-                    render_html(data.data,'#content');
+                    render_html(data.data,'#trade');
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+            　　　　console.log(XMLHttpRequest.status);
+            　　　　console.log(XMLHttpRequest.readyState);
+            　　　　console.log(textStatus);
+                }
+            });
+             $.ajax({
+                url: '/api?action=raw_trade',
+                type: 'get',
+                success: function (data) {
+                    render_html(data.data,'#raw_trade');
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
             　　　　console.log(XMLHttpRequest.status);
@@ -67,7 +79,8 @@
     <object style="width:100%" type="image/svg+xml" data="{{ url_for('static', filename='img/summary.svg')}}"></object>
     <div id="market_value_stat"></div>
     <div id="trade_stat"></div>
-    <div id="content" class="table table-striped"></div>
+    <div id="trade" class="table table-striped"></div>
+    <div id="raw_trade" class="table table-striped"></div>
 </div>
 </body>
 </html>
