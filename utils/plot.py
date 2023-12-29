@@ -47,15 +47,16 @@ def plot(df, df_baselines, params):
         df_draw = df.loc[start:end]
         ax.fill_between(df_draw.index, df_draw.total_value, df_draw.total_value.min(), alpha=0.1, color='green')
     # 画最大回撤的期间
-    s = df_drawback.loc[df_drawback.drawback.idxmax()]
-    df_draw = df.loc[s.start:s.end]
-    ax.fill_between(df_draw.index, df_draw.total_value, df_draw.total_value.min(), alpha=0.3, color='red',
-                    label='最大回撤')
-    # 画最长回撤的期间
-    s = df_drawback.loc[df_drawback.days.idxmax()]
-    df_draw = df.loc[s.start:s.end]
-    ax.fill_between(df_draw.index, df_draw.total_value, df_draw.total_value.min(), alpha=0.3, color='brown',
-                    label='最长回撤')
+    if len(df_drawback)>0:
+        s = df_drawback.loc[df_drawback.drawback.idxmax()]
+        df_draw = df.loc[s.start:s.end]
+        ax.fill_between(df_draw.index, df_draw.total_value, df_draw.total_value.min(), alpha=0.3, color='red',
+                        label='最大回撤')
+        # 画最长回撤的期间
+        s = df_drawback.loc[df_drawback.days.idxmax()]
+        df_draw = df.loc[s.start:s.end]
+        ax.fill_between(df_draw.index, df_draw.total_value, df_draw.total_value.min(), alpha=0.3, color='brown',
+                        label='最长回撤')
     ax.legend(loc='upper right')
 
     # 画基准
@@ -82,5 +83,5 @@ if __name__ == '__main__':
     init_logger()
     conf = load_params(const.CONFIG)
     df = data_loader.load_accounts(conf)
-    plot(df, conf)
-    print("data/summary.svg")
+    df_baselines = [data_loader.load_index(code) for code in conf.baseline]
+    plot(df, df_baselines, conf)
