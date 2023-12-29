@@ -65,6 +65,7 @@ def api():
             # account_id,cash,total_value,total_position_value,date
             df = data_loader.load_trades(_CONF)
             s = stat.stat_trade(df)
+            logger.debug("交易统计：%r",s)
             return jsonify({
                 'code': 0,
                 'msg': 'ok',
@@ -83,6 +84,7 @@ def api():
             df = data_loader.load_accounts(_CONF)
             df_baselines = [data_loader.load_index(code) for code in _CONF.baseline]
             s = stat.stat_market_value(df,df_baselines)
+            logger.debug("市值统计：%r", s)
             return jsonify({
                 'code': 0,
                 'msg': 'ok',

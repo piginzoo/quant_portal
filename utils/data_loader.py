@@ -56,8 +56,6 @@ def load_trades(conf):
             _files.append(df)
     df_trade = pd.concat(_files)
 
-    print(df_trade)
-
     # 临时测试代码，生成假交易，方便测试
     # df_trade = test_generate_data.generate_trades()
     # 交易时间格式是timestamp的，转成date：1703640608 =>2023-12-27 01:30:08
@@ -121,8 +119,6 @@ def load_trades(conf):
             # logger.debug("创建一条交易：%s：%s~%s", s.code, date2str(s.traded_time), date2str(e.traded_time))
 
     df_new_trades = pd.DataFrame.from_records(our_trades)
-
-    print("df_new_trades",df_new_trades)
 
     return df_new_trades
 
