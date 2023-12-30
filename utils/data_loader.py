@@ -71,7 +71,32 @@ def load_formated_raw_trades(conf):
     df_trade.sort_values(by='traded_time', inplace=True, ascending=False) # 最新的在最前面，方便查看
     df_trade['order_type'] = df_trade.order_type.apply(lambda x: '买' if x==23 else '卖')
     df_trade['traded_time'] = df_trade.traded_time.apply(lambda x: date2str(x))
-    return df_trade[["code","order_type","traded_time","traded_price","traded_volume","traded_amount"]]
+    df_trade = df_trade[["code", "order_type", "traded_time", "traded_price", "traded_volume", "traded_amount"]]
+    df_trade.rename(columns={"code":"股票",
+                             "order_type":"买卖",
+                             "traded_time":"日期",
+                             "traded_price":"价格",
+                             "traded_volume":"股数",
+                             "traded_amount":"金额"},inplace=True)
+    return df_trade
+
+def load_formated_trades(conf):
+    df_trade = load_trades(conf)
+    if len(df_trade) > 0:
+        df_trade['close_date'] = df_trade.close_date.apply(lambda x: date2str(x))
+        df_trade['open_date'] = df_trade.open_date.apply(lambda x: date2str(x))
+    df_trade.rename(columns={
+                'code': '股票',
+                'open_date': '开始',
+                'close_date': '结束',
+                'amount': '金额',
+                'position': '股数',
+                'pnl': '收益率',
+                'profit': '收益',
+                'days': '天数'
+            },inplace=True)
+    return df_trade
+
 
 def load_trades(conf):
     df_trade  = load_raw_trades(conf)

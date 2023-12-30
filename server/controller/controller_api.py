@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request, session
 
 from server import const
 from utils import data_loader, stat
-from utils.data_loader import load_trades, load_accounts, load_formated_raw_trades
+from utils.data_loader import load_trades, load_accounts, load_formated_raw_trades, load_formated_trades
 from utils.utils import load_params, today, date2str, dataframe_to_dict_list, get_IP
 
 logger = logging.getLogger(__name__)
@@ -26,10 +26,7 @@ def api():
 
         # /api?action=trade
         if action == 'trade':
-            df = load_trades(_CONF)
-            if len(df)>0:
-                df['close_date'] = df.close_date.apply(lambda x:date2str(x))
-                df['open_date'] = df.open_date.apply(lambda x:date2str(x))
+            df = load_formated_trades(_CONF)
             return jsonify({
                 'code': 0,
                 'msg': 'ok',
