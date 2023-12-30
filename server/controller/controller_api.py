@@ -2,12 +2,12 @@
 # -*- coding: UTF-8 -*-
 import logging
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 
 from server import const
 from utils import data_loader, stat
 from utils.data_loader import load_trades, load_accounts, load_formated_raw_trades
-from utils.utils import load_params, today, date2str, dataframe_to_dict_list
+from utils.utils import load_params, today, date2str, dataframe_to_dict_list, get_IP
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +18,9 @@ _CONF = load_params(const.CONFIG)
 @app.route('/', methods=["GET", "POST"])
 def api():
     try:
-        # if flask.sessions['username'] is None:
-        #     logger.warning("未登录的访问,ip:%s", get_IP())
-        #     return "无效的访问", 400
+        if session.get('username',None) is None:
+            logger.warning("未登录的访问,ip:%s", get_IP())
+            return "无效的访问", 400
 
         action = request.args.get('action', None)
 

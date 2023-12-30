@@ -1,19 +1,16 @@
 import calendar
 import datetime
-import functools
 import json
 import logging
 import os
 import sys
 import time
 
-import dask
 import numpy as np
 import pandas as pd
 import psutil
 import statsmodels.api as sm
 import yaml
-from dask import compute, delayed
 from dateutil.relativedelta import relativedelta
 
 logger = logging.getLogger(__name__)
@@ -76,12 +73,28 @@ def dataframe_to_dict_list(df):
     :param df:
     :return:
     """
-    df = df.fillna(0) # 有nan转化成json，会解析报错
+    df = format_dataframe(df)
     data = df.values.tolist()
     columns = df.columns.tolist()
     return [
         dict(zip(columns, datum)) for datum in data
     ]
+
+def format_dict(_dict):
+    for k,v in _dict.items():
+        if type(v) == float:
+            _dict[k] = round(v,3)
+        if pd.isnull(v):
+            _dict[k] = -9999
+    return _dict
+
+def format_dataframe(df):
+    df = df.fillna(0) # 有nan转化成json，会解析报错
+    pd.api.types.is_float_dtype(df)
+    for column in df.columns:
+        if pd.api.types.is_float_dtype(df[column]):
+            df[column] = df[column].round(3)
+    return df
 
 def get_value(df, index, col=None):
     try:

@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 import logging
 
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, session
 
 from server.const import CONFIG
 from utils import data_loader
@@ -21,7 +21,9 @@ app = Blueprint('index', __name__, url_prefix='/')
 
 @app.route('/', methods=["GET"])
 def login_page():
-    logger.debug("访问首页！")
+
+    if session.get('username',None) is None:
+        return render_template('login.html')
     df = data_loader.load_accounts(_CONF)
     df_baselines = [data_loader.load_index(code) for code in _CONF.baseline]
     plot(df,df_baselines, _CONF)

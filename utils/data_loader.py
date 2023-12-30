@@ -1,12 +1,11 @@
+import logging
 import os
-import akshare as ak
 
+import akshare as ak
 import pandas as pd
 
 from server import const
-from test import test_generate_data
 from utils.utils import load_params, duration, init_logger, date2str
-import logging
 
 logger = logging.getLogger(__name__)
 

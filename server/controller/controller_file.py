@@ -22,6 +22,10 @@ _CONF = load_params('conf/config.yml')
 def query():
     if request.method == 'POST':
         file = request.files['file']
+        args = request.args
+        if args.get('password',None) is None: return 'permission deny!',403
+        if args.get('password')!=_CONF.password: return 'permission deny', 403
+
         # 文件名
         file_name = file.filename
         create_dir(_CONF.data_dir)
